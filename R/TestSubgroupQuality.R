@@ -5,6 +5,7 @@
 #' @param labels a list/vector of target attribute(s) information. The attributes are aggregate by the function qfunc
 #' @param qfunc is a function that takes labels of the target group a measure it relevancy to this attribute
 #' @param qfunc.opt is an arbitrary data needed by qfunc
+#' @param mode is the mode for computing extream values it can be one of 'small','large','both'.
 #' @param n.bstrp is the number bootstrap trials
 #'
 #' @return For every set returns the probability that the quality value is within the confidence interval
@@ -25,6 +26,7 @@ testSubgroupSetsQuality=function(
   labels=c(),
   qfunc=function(labels, qfunc.opt){NULL},
   qfunc.opt=NULL,
+  mode='both',
   n.bstrp=100)
 {
   rnd.labels=NULL
@@ -47,7 +49,16 @@ testSubgroupSetsQuality=function(
 
       largerValuesNum = sum(rndQs >= extQ)
       smallerValuesNum = sum(rndQs <= extQ)
-      extreamValuesNum = min(largerValuesNum, smallerValuesNum)
+      extreamValuesNum = -1
+      if(mode == 'l' || mode == 'large') {
+        extreamValuesNum = largerValuesNum
+      } else if(mode=='s' || mode=='small') {
+        extreamValuesNum=smallerValuesNum
+      } else if(mode=='a' || mode == 'both') {
+        extreamValuesNum = min(largerValuesNum, smallerValuesNum)
+      } else {
+        stopifnot(FALSE)
+      }
 
       setRslt = data.frame(SetName = set$SetName, ExtNum=extNum, ExtreamValuesNum = extreamValuesNum)
       rslt=rbind(rslt,setRslt)

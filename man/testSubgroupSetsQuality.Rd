@@ -7,7 +7,7 @@
 \usage{
 testSubgroupSetsQuality(sets = list(), labels = c(),
   qfunc = function(labels, qfunc.opt) {     NULL }, qfunc.opt = NULL,
-  n.bstrp = 100)
+  mode = "both", n.bstrp = 100)
 }
 \arguments{
 \item{sets}{a list/vector of different sets, every set is a list of different pattern indices}
@@ -17,6 +17,8 @@ testSubgroupSetsQuality(sets = list(), labels = c(),
 \item{qfunc}{is a function that takes labels of the target group a measure it relevancy to this attribute}
 
 \item{qfunc.opt}{is an arbitrary data needed by qfunc}
+
+\item{mode}{is the mode for computing extream values it can be one of 'small','large','both'.}
 
 \item{n.bstrp}{is the number bootstrap trials}
 }

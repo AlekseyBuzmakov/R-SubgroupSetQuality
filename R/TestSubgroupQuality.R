@@ -36,6 +36,10 @@ testSubgroupSetsQuality=function(
   for(set in sets) {
     extNum=0
     for(ext in set$Extents) {
+      if(length(ext)==0) {
+        warning(paste0("Set ", extNum, " in ", set$SetName, " is empty."))
+        next
+      }
       extNum = extNum + 1
       extQ = qfunc(labels[ext],qfunc.opt)
       rndQs = apply(rnd.labels[ext,],2,qfunc,qfunc.opt)

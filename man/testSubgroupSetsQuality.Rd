@@ -29,7 +29,7 @@ Function compares different sets of patterns
 }
 \examples{
 
-sets = list(list(SetsName="TMP", Extents=list(c(1,5,7),c(2,3,4,5))))
+sets = list(list(SetName="TMP", Extents=list(c(1,5,7),c(2,3,4,5))))
 labels = rbinom(10,1,0.5)
 qfunc=function(labels, qfunc.opt=NULL) {
   return(mean(labels))

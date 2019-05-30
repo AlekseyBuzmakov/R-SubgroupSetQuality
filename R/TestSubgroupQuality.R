@@ -42,7 +42,7 @@ testSubgroupSetsQuality=function(
       }
       extNum = extNum + 1
       extQ = qfunc(labels[ext],qfunc.opt)
-      rndQs = apply(rnd.labels[ext,],2,qfunc,qfunc.opt)
+      rndQs = apply(rnd.labels[ext,,drop=FALSE],2,qfunc,qfunc.opt)
       stopifnot(all(!is.na(rndQs)))
 
       largerValuesNum = sum(rndQs >= extQ)

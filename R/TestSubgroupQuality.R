@@ -40,13 +40,12 @@ testSubgroupSetsQuality=function(
   rnd.rslt=NULL
   for(set in sets) {
     rnd.count=rep(0,ncol(rnd.labels))
-    extNum=0
+    relatedExtentsNum=0
     for(ext in set$Extents) {
       if(length(ext)==0) {
         warning(paste0("Set ", extNum, " in ", set$SetName, " is empty."))
         next
       }
-      extNum = extNum + 1
       extQ = qfunc(labels[ext],qfunc.opt)
       rndQs = apply(rnd.labels[ext,,drop=FALSE],2,qfunc,qfunc.opt)
       stopifnot(all(!is.na(rndQs)))
@@ -67,13 +66,22 @@ testSubgroupSetsQuality=function(
         stopifnot(FALSE)
       }
 
-      setRslt = data.frame(SetName = set$SetName, ExtNum=extNum, ExtreamValuesNum = extreamValuesNum)
-      rslt=rbind(rslt,setRslt)
+      if(extreamValuesNum < alpha * n.bstrp) {
+        relatedExtentsNum = relatedExtentsNum + 1
+      }
+
     }
-    rnd.quantiles=matrix(quantile(rnd.count,probs = c(alpha,0.25,0.5,0.75,1-alpha)),nrow = 1)
-    rownames(rnd.quantiles)=set$SetName
-    rnd.rslt=rbind(rnd.rslt,rnd.quantiles)
+    setRslt = data.frame(SetName = set$SetName,
+                         RelatedExtents=relatedExtentsNum,
+                         TotalExtents=length(set$Extent),
+                         PVal=mean(relatedExtentsNum <= rnd.count))
+    rnd.quantiles=quantile(rnd.count,probs = c(alpha,0.25,0.5,0.75,1-alpha))
+    nn = names(rnd.quantiles)
+    rnd.quantiles=matrix(rnd.quantiles,nrow=1)
+    colnames(rnd.quantiles)=nn
+
+    setRslt = cbind(setRslt,rnd.quantiles)
+    rslt=rbind(rslt,setRslt)
   }
-  colnames(rnd.rslt)=c("Alpha","25%","50%","75%","1-Alpha")
-  return(list(Data=rslt,Rnd=rnd.rslt))
+  return(rslt)
 }

@@ -7,7 +7,7 @@
 \usage{
 testSubgroupSetsQuality(sets = list(), labels = c(),
   qfunc = function(labels, qfunc.opt) {     NULL }, qfunc.opt = NULL,
-  mode = "both", n.bstrp = 100)
+  mode = "both", n.bstrp = 100, alpha = 0.05)
 }
 \arguments{
 \item{sets}{a list/vector of different sets, every set is a list of different pattern indices}
@@ -21,6 +21,8 @@ testSubgroupSetsQuality(sets = list(), labels = c(),
 \item{mode}{is the mode for computing extream values it can be one of 'small','large','both'.}
 
 \item{n.bstrp}{is the number bootstrap trials}
+
+\item{alpha}{is the significance level to be used for counting the class-related patterns}
 }
 \value{
 For every set returns the probability that the quality value is within the confidence interval
@@ -38,5 +40,5 @@ qfunc=function(labels, qfunc.opt=NULL) {
 }
 n.bstrp=100
 
-testSubgroupSetsQuality(sets,labels,qfunc,NULL,n.bstrp)
+testSubgroupSetsQuality(sets,labels,qfunc,NULL,mode='b',n.bstrp)
 }

@@ -7,6 +7,7 @@
 #' @param qfunc.opt is an arbitrary data needed by qfunc
 #' @param mode is the mode for computing extream values it can be one of 'small','large','both'.
 #' @param n.bstrp is the number bootstrap trials
+#' @param alpha is the significance level to be used for counting the class-related patterns
 #'
 #' @return For every set returns the probability that the quality value is within the confidence interval
 #' @export
@@ -20,14 +21,15 @@
 #' }
 #' n.bstrp=100
 #'
-#' testSubgroupSetsQuality(sets,labels,qfunc,NULL,n.bstrp)
+#' testSubgroupSetsQuality(sets,labels,qfunc,NULL,mode='b',n.bstrp)
 testSubgroupSetsQuality=function(
   sets=list(),
   labels=c(),
   qfunc=function(labels, qfunc.opt){NULL},
   qfunc.opt=NULL,
   mode='both',
-  n.bstrp=100)
+  n.bstrp=100,
+  alpha=0.05)
 {
   rnd.labels=NULL
   for(i in 1:n.bstrp) {
@@ -35,7 +37,9 @@ testSubgroupSetsQuality=function(
   }
 
   rslt=NULL
+  rnd.rslt=NULL
   for(set in sets) {
+    rnd.count=rep(0,ncol(rnd.labels))
     extNum=0
     for(ext in set$Extents) {
       if(length(ext)==0) {
@@ -52,10 +56,13 @@ testSubgroupSetsQuality=function(
       extreamValuesNum = -1
       if(mode == 'l' || mode == 'large') {
         extreamValuesNum = largerValuesNum
+        rnd.count = rnd.count + (rndQs > quantile(rndQs, probs = 1-alpha))
       } else if(mode=='s' || mode=='small') {
         extreamValuesNum=smallerValuesNum
-      } else if(mode=='a' || mode == 'both') {
+        rnd.count = rnd.count + (rndQs < quantile(rndQs, probs = alpha))
+      } else if(mode=='b' || mode == 'both') {
         extreamValuesNum = min(largerValuesNum, smallerValuesNum)
+        rnd.count = rnd.count + (quantile(rndQs, probs = alpha) > rndQs | rndQs > quantile(rndQs, probs = 1-alpha))
       } else {
         stopifnot(FALSE)
       }
@@ -63,6 +70,9 @@ testSubgroupSetsQuality=function(
       setRslt = data.frame(SetName = set$SetName, ExtNum=extNum, ExtreamValuesNum = extreamValuesNum)
       rslt=rbind(rslt,setRslt)
     }
+    rnd.quantiles=quantile(rnd.count,probs = c(alpha,0.25,0.5,0.75,1-alpha))
+    rnd.rslt=rbind(rnd.rslt,c(set$SetName,rnd.quantiles))
   }
-  return(rslt)
+  colnames(rnd.rslt)=c("SetName","Alpha","25%","50%","75%","1-Alpha")
+  return(list(Data=rslt,Rnd=rnd.rslt))
 }

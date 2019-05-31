@@ -14,7 +14,10 @@
 #'
 #' @examples
 #'
-#' sets = list(list(SetName="TMP", Extents=list(c(1,5,7),c(2,3,4,5))))
+#' sets = list(
+#'   list(SetName="TMP1", Extents=list(c(1,5,7),c(2,3,4,5))),
+#'   list(SetName="TMP2", Extents=list(c(1:10),c(2:5)))
+#' )
 #' labels = rbinom(10,1,0.5)
 #' qfunc=function(labels, qfunc.opt=NULL) {
 #'   return(mean(labels))
@@ -37,11 +40,10 @@ testSubgroupSetsQuality=function(
   }
 
   clst <- parallel::makeCluster(parallel::detectCores())
-  parallel::clusterExport(cl=clst, names(environment()), envir=environment())
+  parallel::clusterExport(cl=clst, c("labels","qfunc","qfunc.opt","mode","n.bstrp","alpha","rnd.labels"), envir=environment())
 
-  rslt=NULL
-  rnd.rslt=NULL
-  for(set in sets) {
+  rslt=parallel::parLapply(cl=clst,sets,function(set){
+    rslt=NULL
     rnd.count=rep(0,ncol(rnd.labels))
     relatedExtentsNum=0
     for(ext in set$Extents) {
@@ -50,11 +52,9 @@ testSubgroupSetsQuality=function(
         next
       }
       extQ = qfunc(labels[ext],qfunc.opt)
-      parallel::clusterExport(cl=clst, "ext", envir=environment())
-      rndQs = parallel::parSapply(cl=clst,
-                                  1:ncol(rnd.labels),
-                                  function(i)
-                                    (qfunc(rnd.labels[ext,i],qfunc.opt)))
+      rndQs = sapply(1:ncol(rnd.labels), function(i) {
+                                    qfunc(rnd.labels[ext,i],qfunc.opt)
+        })
       stopifnot(all(!is.na(rndQs)))
 
       largerValuesNum = sum(rndQs >= extQ)
@@ -88,7 +88,8 @@ testSubgroupSetsQuality=function(
 
     setRslt = cbind(setRslt,rnd.quantiles)
     rslt=rbind(rslt,setRslt)
-  }
+    rslt
+  })
   parallel::stopCluster(clst)
-  return(rslt)
+  return(do.call("rbind",rslt))
 }

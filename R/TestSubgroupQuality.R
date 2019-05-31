@@ -70,9 +70,10 @@ testSubgroupSetsQuality=function(
       setRslt = data.frame(SetName = set$SetName, ExtNum=extNum, ExtreamValuesNum = extreamValuesNum)
       rslt=rbind(rslt,setRslt)
     }
-    rnd.quantiles=quantile(rnd.count,probs = c(alpha,0.25,0.5,0.75,1-alpha))
-    rnd.rslt=rbind(rnd.rslt,c(set$SetName,rnd.quantiles))
+    rnd.quantiles=matrix(quantile(rnd.count,probs = c(alpha,0.25,0.5,0.75,1-alpha)),nrow = 1)
+    rownames(rnd.quantiles)=set$SetName
+    rnd.rslt=rbind(rnd.rslt,rnd.quantiles)
   }
-  colnames(rnd.rslt)=c("SetName","Alpha","25%","50%","75%","1-Alpha")
+  colnames(rnd.rslt)=c("Alpha","25%","50%","75%","1-Alpha")
   return(list(Data=rslt,Rnd=rnd.rslt))
 }

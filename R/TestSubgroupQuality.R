@@ -19,7 +19,7 @@
 #' qfunc=function(labels, qfunc.opt=NULL) {
 #'   return(mean(labels))
 #' }
-#' n.bstrp=100
+#' n.bstrp=1000
 #'
 #' testSubgroupSetsQuality(sets,labels,qfunc,NULL,mode='b',n.bstrp)
 testSubgroupSetsQuality=function(
@@ -36,6 +36,9 @@ testSubgroupSetsQuality=function(
     rnd.labels=cbind(rnd.labels,sample(labels))
   }
 
+  clst <- parallel::makeCluster(parallel::detectCores())
+  parallel::clusterExport(cl=clst, names(environment()), envir=environment())
+
   rslt=NULL
   rnd.rslt=NULL
   for(set in sets) {
@@ -47,7 +50,11 @@ testSubgroupSetsQuality=function(
         next
       }
       extQ = qfunc(labels[ext],qfunc.opt)
-      rndQs = apply(rnd.labels[ext,,drop=FALSE],2,qfunc,qfunc.opt)
+      parallel::clusterExport(cl=clst, "ext", envir=environment())
+      rndQs = parallel::parSapply(cl=clst,
+                                  1:ncol(rnd.labels),
+                                  function(i)
+                                    (qfunc(rnd.labels[ext,i],qfunc.opt)))
       stopifnot(all(!is.na(rndQs)))
 
       largerValuesNum = sum(rndQs >= extQ)
@@ -69,7 +76,6 @@ testSubgroupSetsQuality=function(
       if(extreamValuesNum < alpha * n.bstrp) {
         relatedExtentsNum = relatedExtentsNum + 1
       }
-
     }
     setRslt = data.frame(SetName = set$SetName,
                          RelatedExtents=relatedExtentsNum,
@@ -83,5 +89,6 @@ testSubgroupSetsQuality=function(
     setRslt = cbind(setRslt,rnd.quantiles)
     rslt=rbind(rslt,setRslt)
   }
+  parallel::stopCluster(clst)
   return(rslt)
 }
